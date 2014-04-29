@@ -3,17 +3,16 @@ async = require 'async'
 path = require 'path'
 
 {Manifest} = require './manifest'
-{mkdirp, getStream,} = require './utils'
+{mkdirp, getStream} = require './utils'
 {Transport, FsTransport} = require './transport'
 
-
 defaults =
-  # where to store and load manifest file on destination transport
-  # can be set to a falsey value to disable manifest usage
+  # where to store and load manifest file on destination transport can be set
+  # to a falsey value to disable manifest usage
   manifest: 'manifest.json'
 
-  # force a manifest rebuild, useful if destination files and destination manifest
-  # has lost their state. has no effect if manifest is not used
+  # force a manifest rebuild, useful if destination files and destination
+  # manifest has lost their state. has no effect if manifest is not used
   forceRebuild: false
 
   # maximum number of concurrent operations run on transports
@@ -46,10 +45,15 @@ createLogger = ->
     ]
   return logger
 
+###*
+ * Synchronize *source* transport to *destination* transport using *options*.
+ * @param {[type]} source [description]
+ * @param {[type]} destination [description]
+ * @param {[type]} options [description]
+ * @param {Function} callback [description]
+ * @return {[type]} [description]
+###
 nsync = (source, destination, options, callback) ->
-  ### Synchronize *source* transport to *destination* transport using *options*.
-      Calls *callback* when done or if an error occurs. ###
-
   if arguments.length is 3
     callback = options
     options = {}
@@ -157,8 +161,8 @@ nsync = (source, destination, options, callback) ->
         .filter (diff) -> diff.type is 'new'
         .map (diff) -> path.dirname path.join(options.destinationPath, diff.file)
         .filter (dir, idx, arr) -> arr.indexOf(dir) is idx
-      # TODO: figure out which directories can be created in parallel
-      #       and try to saturate transport concurrency
+      # TODO: figure out which directories can be created in parallel and try
+      # to saturate transport concurrency
       async.forEachSeries newDirectories, (dir, callback) ->
         logger.debug "Creating directory: #{ dir }"
         if not pretend
@@ -262,9 +266,6 @@ nsync = (source, destination, options, callback) ->
     cleanup
   ], done
   return
-
-
-### Exports ###
 
 module.exports = nsync
 module.exports.defaults = defaults

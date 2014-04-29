@@ -1,16 +1,26 @@
-### Module that lists modules. ###
-
 fs = require 'fs'
 {globalPaths, Module} = require 'module'
 
+###*
+ * Module that lists modules.
+###
+
+###*
+ * Return a copy of *array* with duplicates removed.
+ * @param  {[type]} array [description]
+ * @return {[type]}       [description]
+###
 removeDuplicates = (array) ->
-  ### Return a copy of *array* with duplicates removed. ###
   map = {}
   map[array[key]] = array[key] for key in [0...array.length]
   return (value for key, value of map)
 
+###*
+ * Return first directory found in *paths*, or null if none is found.
+ * @param  {[type]} paths [description]
+ * @return {[type]}       [description]
+###
 firstDirectory = (paths) ->
-  ### Return first directory found in *paths*, or null if none is found. ###
   for dir in paths
     try
       stat = fs.statSync dir
@@ -20,10 +30,11 @@ firstDirectory = (paths) ->
       throw error if error.code isnt 'ENOENT'
   return null
 
+###*
+ * Return a list of available modules for a script running from *cwd*. Will
+   also include global modules if *includeGlobal* is true.
+###
 listModules = (cwd, includeGlobal=true) ->
-  ### Return a list of available modules for a script running from *cwd*.
-      Will also include global modules if *includeGlobal* is true. ###
-
   modules = []
   modulePaths = []
 
