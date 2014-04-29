@@ -4,7 +4,7 @@ path = require 'path'
 bunyan = require 'bunyan'
 
 nsync = require './../'
-listModules = require './list'
+transports = require '../transports'
 {CliStream} = require './logger'
 {readJSONSync, writeJSONSync} = require './../utils'
 packageInfo = require(path.join(__dirname, '../../package.json'))
@@ -14,29 +14,8 @@ camel2dash = (string) ->
   string.replace /([A-Z])/g, (m) ->
     "-#{ m.toLowerCase() }"
 
-isTransport = (name) ->
-  /^nsync\-/.test name
-
 normalizeTransportName = (name) ->
   name.replace /^nsync\-/, ''
-
-requireTransport = (name) ->
-  try
-    if name is 'fs'
-      return nsync.FsTransport
-    try
-      return require.resolve "nsync-#{name}"
-    catch error
-      if error.code is 'MODULE_NOT_FOUND'
-        return require.resolve name
-      else
-        throw error
-  catch error
-    if error.code is 'MODULE_NOT_FOUND'
-      logger.error "Transport #{name} not found!"
-    else
-      logger.error error, "Could not load transport '#{name}'"
-    exit 1
 
 resolveOptions = (args, config, defaults) ->
   options = {}
@@ -76,15 +55,6 @@ main = ->
   exit = (code) ->
     # give the log streams a chance to flush before exiting
     setImmediate -> process.exit code
-
-  availableTransports = listModules process.cwd()
-    .filter isTransport
-    .map normalizeTransportName
-  availableTransports.push 'fs'
-
-  transports = {}
-  for name in availableTransports
-    transports[name] = requireTransport name
 
   argparser = new ArgumentParser(
     version: packageInfo.version

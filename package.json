@@ -32,7 +32,8 @@
     "minimist": "0.0.8",
     "knox": "^0.8.9",
     "mime": "^1.2.11",
-    "ssh2": "^0.2.22"
+    "ssh2": "^0.2.22",
+    "indx": "^0.1.1"
   },
   "optionalDependencies": {
     "source-map-support": "^0.2.5"
