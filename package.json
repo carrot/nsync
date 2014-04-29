@@ -29,14 +29,18 @@
     "chalk": "^0.4.0",
     "ignore": "^2.2.12",
     "memorystream": "^0.2.0",
-    "minimist": "0.0.8"
+    "minimist": "0.0.8",
+    "knox": "^0.8.9",
+    "mime": "^1.2.11",
+    "ssh2": "^0.2.22"
   },
   "optionalDependencies": {
     "source-map-support": "^0.2.5"
   },
   "devDependencies": {
     "coffee-script": "~1.7.1",
-    "shelljs": "^0.2.6"
+    "shelljs": "^0.2.6",
+    "ftp-server": "^0.1.0"
   },
   "engines": {
     "node": ">=0.10.0"
