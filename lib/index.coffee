@@ -4,7 +4,8 @@ path = require 'path'
 
 {Manifest} = require './manifest'
 {mkdirp, getStream} = require './utils'
-{Transport, FsTransport} = require './transport'
+Transport = require './transport'
+FsTransport = require './transports/fs'
 
 defaults =
   # where to store and load manifest file on destination transport can be set
