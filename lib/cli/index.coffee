@@ -137,18 +137,21 @@ main = ->
     help: 'save current options to FILENAME'
     metavar: 'FILENAME'
   )
-  argparser.addArgument(
+
+  debugGroup = argparser.addMutuallyExclusiveGroup()
+  debugGroup.addArgument(
     ['--quiet', '-q']
     action: 'storeTrue'
     defaultValue: false
     help: 'only output critical errors'
   )
-  argparser.addArgument(
+  debugGroup.addArgument(
     ['--debug']
     action: 'storeTrue'
     defaultValue: false
     help: 'Show debug information'
   )
+
   argparser.addArgument(
     ['--json']
     action: 'storeTrue'
