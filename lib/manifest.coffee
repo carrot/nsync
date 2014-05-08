@@ -21,7 +21,6 @@ hashStream = (stream, callback) ->
   return
 
 class Manifest
-
   constructor: (@files={}, @lastUpdate) ->
     @lastUpdate ?= Date.now()
 
@@ -45,72 +44,70 @@ class Manifest
       return {file: filename, size: file[0], hash: file[1]}
     return null
 
-Manifest.fromFile = (filename, transport, callback) ->
-  ### Calls back with a Manifest instance created from a JSON file
-      named *filename* using *transport*. ###
-  waterfall [
-    (callback) -> getStream transport, filename, callback
-    readStream
-    parseJSON
-    (data, callback) ->
-      callback null, new Manifest(data.files, data.lastUpdate)
-  ], callback
+  fromFile: (filename, transport, callback) ->
+    ### Calls back with a Manifest instance created from a JSON file
+        named *filename* using *transport*. ###
+    waterfall [
+      (callback) -> getStream transport, filename, callback
+      readStream
+      parseJSON
+      (data, callback) ->
+        callback null, new Manifest(data.files, data.lastUpdate)
+    ], callback
 
-Manifest.fromDirectory = (dirname, transport, concurrency, callback) ->
-  ### Calls back with a Manifest instance created
-      from a *dirname* using *transport*. ###
-  waterfall [
-    (callback) -> lsr transport, dirname, concurrency, callback
-    (result, callback) ->
-      files = {}
-      async.forEachLimit result, concurrency, (file, callback) ->
-        filename = path.join dirname, file
-        waterfall [
-          (callback) -> getStream transport, filename, callback
-          hashStream
-          (hash, callback) ->
-            files[file] = hash
-            callback()
-        ], callback
-      , (error) ->
-        manifest = new Manifest(files) unless error?
-        callback error, manifest
-  ], callback
+  fromDirectory: (dirname, transport, concurrency, callback) ->
+    ### Calls back with a Manifest instance created
+        from a *dirname* using *transport*. ###
+    waterfall [
+      (callback) -> lsr transport, dirname, concurrency, callback
+      (result, callback) ->
+        files = {}
+        async.forEachLimit result, concurrency, (file, callback) ->
+          filename = path.join dirname, file
+          waterfall [
+            (callback) -> getStream transport, filename, callback
+            hashStream
+            (hash, callback) ->
+              files[file] = hash
+              callback()
+          ], callback
+        , (error) ->
+          manifest = new Manifest(files) unless error?
+          callback error, manifest
+    ], callback
 
-Manifest.diff = (oldManifest, newManifest) ->
-  ### Return a array with differences between *oldManifest* and *newManifest*. ###
-  diff = []
-  for filename, newInfo of newManifest.files
-    oldInfo = oldManifest.files[filename]
-    if oldInfo?
-      if oldInfo[1] isnt newInfo[1]
+  diff: (oldManifest, newManifest) ->
+    ### Return a array with differences between *oldManifest* and *newManifest*. ###
+    diff = []
+    for filename, newInfo of newManifest.files
+      oldInfo = oldManifest.files[filename]
+      if oldInfo?
+        if oldInfo[1] isnt newInfo[1]
+          diff.push
+            type: 'change'
+            file: filename
+            hash: newInfo[1]
+            oldHash: oldInfo[1]
+            size: newInfo[0]
+            oldSize: oldInfo[0]
+      else
         diff.push
-          type: 'change'
+          type: 'new'
           file: filename
           hash: newInfo[1]
-          oldHash: oldInfo[1]
+          oldHash: null
           size: newInfo[0]
+          oldSize: 0
+    for filename, oldInfo of oldManifest.files
+      newInfo = newManifest.files[filename]
+      if not newInfo?
+        diff.push
+          type: 'delete'
+          file: filename
+          hash: null
+          oldHash: oldInfo[1]
+          size: 0
           oldSize: oldInfo[0]
-    else
-      diff.push
-        type: 'new'
-        file: filename
-        hash: newInfo[1]
-        oldHash: null
-        size: newInfo[0]
-        oldSize: 0
-  for filename, oldInfo of oldManifest.files
-    newInfo = newManifest.files[filename]
-    if not newInfo?
-      diff.push
-        type: 'delete'
-        file: filename
-        hash: null
-        oldHash: oldInfo[1]
-        size: 0
-        oldSize: oldInfo[0]
-  return diff
+    return diff
 
-# Exports
-
-module.exports = {Manifest}
+module.exports = Manifest
