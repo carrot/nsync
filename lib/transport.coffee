@@ -94,22 +94,6 @@ class Transport
   deleteFile: (filename, callback) ->
 
   ###*
-   * Validate *transport*, *callback* with error if it's missing any methods.
-   * @param {[type]} transport [description]
-   * @param {Function} callback [description]
-   * @return {[type]} [description]
-  ###
-  validate: (transport, callback) ->
-    if not transport.createReadStream? and not transport.getFile?
-      throw new Error "TransportError - #{ transport.constructor.name } missing file fetching, implement createReadStream or getFile"
-    for method of Transport.prototype
-      if method is 'createReadStream' or method is 'getFile'
-        continue
-      if not transport[method]?
-        throw new Error "TransportError - #{ transport.constructor.name } is missing method: #{ method }"
-    return
-
-  ###*
    * Return canonical name for *transport*.
    * @param {[type]} transport [description]
    * @return {[type]} [description]
