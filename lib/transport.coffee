@@ -93,13 +93,4 @@ class Transport
   ###
   deleteFile: (filename, callback) ->
 
-  ###*
-   * Return canonical name for *transport*.
-   * @param {[type]} transport [description]
-   * @return {[type]} [description]
-  ###
-  getName: ->
-    if @name? then return @name
-    return @constructor.name.toLowerCase().replace(/transport$/, '')
-
 module.exports = Transport
