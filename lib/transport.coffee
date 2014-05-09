@@ -1,56 +1,86 @@
+ConfigSchema = require 'config-schema'
+W = require 'when'
+
 ###*
  * Base class for transports
 ###
 class Transport
   ###*
-   * Constructor, *options* are passed in from the cli tool or manually when
-     using nsync as a library. Transports are responsible for validating their
-     own options and should throw an error if something is amiss.
-   * @param {[type]} options [description]
-   * @return {[type]} [description]
+   * Holds the schema that manages the configuration.
+   * @type {ConfigSchema}
   ###
-  constructor: (options) ->
+  configSchema: undefined
 
   ###*
-   * Do any needed setup here, callback when done.
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * The current configuration object for the transport (prevents us from
+     needing to pass configuration items around). This object may be mutated
+     from what the configSchema defines after sync starts.
+   * @private
+   * @type {Object}
   ###
-  setup: (callback) ->
+  _config: undefined
 
   ###*
-   * Called after sync completes, do any cleanup needed here. close sockets
-     etc.
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * By default, it just sets schema properties that all transports use.
+   * @extend
   ###
-  cleanup: (callback) ->
+  constructor: ->
+    # make sure these don't get shared between instances
+    @configSchema = new ConfigSchema()
+    @_config = {}
+
+    @configSchema.schema.path =
+      required: true
+      type: 'string'
+      description: 'Path to write to on destination'
+
+  ###*
+   * Validate the config & put it in `_config`
+   * @param {Object} config
+  ###
+  configure: (config) ->
+    @_config = @configSchema.validate(config)
+    @_config.path = path.normalize(@_config.target)
+
+  ###*
+   * Resolve a local file path, relative to `_config.path`
+   * @param {String} filename
+  ###
+  resolvePath: (filename) ->
+    path.join @_config.path, filename
+
+  ###*
+   * Called after sync completes, do any cleanup needed here. close sockets etc.
+   * @return {Promise}
+  ###
+  cleanup: ->
+    return when.resolve()
 
   ###*
    * Callback with a array of filenames and directories in *dirname*.
      Directories should be indicated with a trailing slash (e.g. foo/).
-   * @param  {[type]}   dirname  [description]
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * @param {String} dirname
+   * @return {Promise} Promise for an array of filenames
   ###
-  listDirectory: (dirname, callback) ->
+  listDirectory: (dirname) ->
+    return when.resolve()
 
   ###*
-   * Create *dirname*, *callback* when done.
-   * @param  {[type]}   dirname  [description]
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * Create *dirname*, ** when done.
+   * @param {String} dirname
+   * @return {Promise}
   ###
-  makeDirectory: (dirname, callback) ->
+  makeDirectory: (dirname) ->
+    return when.resolve()
 
   ###*
-   * Delete directory *dirname*, callback when done. Only needs to handle
+   * Delete directory *dirname*,  when done. Only needs to handle
      empty directories.
-   * @param  {[type]}   dirname  [description]
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * @param {String} dirname
+   * @return {Promise}
   ###
-  deleteDirectory: (dirname, callback) ->
+  deleteDirectory: (dirname) ->
+    return when.resolve()
 
   ###*
    * Fetching files: you can choose to implement either of the following
@@ -59,38 +89,40 @@ class Transport
   ###
 
   ###*
-   * Return a readable stream for *filename*. File not found and other errors
-     should be emitted on stream.
-   * @param  {[type]} filename [description]
-   * @return {[type]}          [description]
+   * Return a readable stream for `filename`.
+   * @param  {String} filename
+   * @return {Promise}
   ###
-  createReadStream: (filename) ->
+  getReadStream: (filename) ->
 
   ###*
-   * Callback with a *Stream* or *Buffer* object for *filename*, or an error
-     if *filename* can not be found.
-   * @param  {[type]}   filename [description]
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * Read a file.
+   * @param  {String} filename
+   * @return {Promise}
   ###
-  getFile: (filename, callback) ->
+  readFile: (filename) ->
 
   ###*
-   * Write *stream* of *size* bytes to *filename*, *callback* when done.
-   * @param  {[type]}   filename [description]
-   * @param  {[type]}   size     [description]
-   * @param  {[type]}   stream   [description]
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * Return a writeable stream for `filename`.
+   * @param  {String} filename
+   * @return {Promise}
   ###
-  putFile: (filename, size, stream, callback) ->
+  getWriteStream: (filename) ->
 
   ###*
-   * Delete *filename*, *callback* when done.
-   * @param  {[type]}   filename [description]
-   * @param  {Function} callback [description]
-   * @return {[type]}            [description]
+   * Write *stream* of *size* bytes to `filename`
+   * @param {[type]} filename
+   * @param {[type]} size
+   * @param {[type]} stream
+   * @return {Promise}
   ###
-  deleteFile: (filename, callback) ->
+  writeFile: (filename) ->
+
+  ###*
+   * Delete `filename`
+   * @param  {[type]}   filename [description]
+   * @return {Promise}
+  ###
+  deleteFile: (filename) ->
 
 module.exports = Transport
